@@ -5,7 +5,15 @@ https://github.com/BODDUSRIPAVAN/Online-Leave-Management-System/assets/104664633
 # Online Leave Management System
 <h4>Technologies used: HTML, CSS, Bootstrap, JavaScript(JQuery), Flask, Python, MySQL</h4>
 OLMS is an online leave application platform for students with user authentication, student and faculty portals, leave status dashboard.
-<h5>Advantaages:</h5>
+<h5>Features:</h5>
+<ul>
+  <li>User authentication</li>
+  <li>Student portal</li>
+  <li>Authority portal</li>
+  <li>Status update</li>
+  <li>Status dashboard</li>
+</ul>
+<h5>Advantages:</h5>
 <ul>
   <li>Paperless application</li>
   <li>Remotely accessible</li>
