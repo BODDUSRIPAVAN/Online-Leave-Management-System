@@ -15,7 +15,7 @@ OLMS is an online leave application platform for students with user authenticati
 </ul>
 <h5>Advantages:</h5>
 <ul>
-  <li>Paperless application</li>
+  <li>Paperless applications</li>
   <li>Remotely accessible</li>
   <li>Efficient</li>
 </ul>
