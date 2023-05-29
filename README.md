@@ -14,7 +14,8 @@ OLMS is an online leave application platform for students with user authenticati
 <ol>
 <li>static: this folder conatains all static files such as images.</li>
 <li>templates: this folder contains all html files which includes index.html, navigation_bar.html, and footer.html</li>
-<li>application.py: this acts as python flask server where frontend and database are connected.
+<li>application.py: this acts as python flask server where frontend and database are connected.</li>
+<li>database.sql: this includes relational database management operations</li>
 </ol>
 <h5>Features:</h5>
 <ul>
