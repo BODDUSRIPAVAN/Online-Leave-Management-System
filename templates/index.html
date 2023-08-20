@@ -113,8 +113,12 @@
             </td>
             <td>
                 <div class="form-group">
-                {%if row.5=='y'%}
+                {%if row.5=='a'%}
                     <a class="btn btn-success btn-xs text-white">Granted</a>
+                {%elif row.5=='b'%}
+                    <a class="btn btn-success btn-xs text-white">Waiting for HoD</a>
+                {%elif row.5=='c'%}
+                    <a class="btn btn-primary btn-xs text-white">Waiting for faculty</a>
                 {%elif row.5=='r'%}
                     <a class="btn btn-secondary btn-xs text-white">Denied</a>
                 {%else%}
@@ -131,19 +135,79 @@
 {%endif%}
 <br><br>
 {%elif faculty%}
+{%if faculty.0.5=='y'%}
+
 <div class="container-fluid" style="padding-top: 8%;padding-bottom: 1%;">
     <div class="row">
         <div class="col-2"></div>
         <div class="col-5"><br/><br/>
-            <h2 class="h1" style="color:rgb(0, 34, 49);"> Welcome authority </h1>
+            <h2 class="h1" style="color:rgb(0, 34, 49);"> Welcome HoD </h1>
             <h1 class="h1" style="color:rgb(0, 34, 49);">{{faculty.0.0}} </h1>
         </div>
         <div class="col-5">
             <img src="{{url_for('static', filename='university.png')}}" height="100%" width="30%">
         </div>
     </div><br><br>
-</div><br>
-<br><h2 class="h2 text-primary text-center">Leave applications</h2><br/>
+</div><br><br><br><br><br>
+<div class="container-fluid">
+<div class="row">
+    <div class="col-2"></div>
+    <div class="col-4"><h3 class="h3">Check student's leave history</h3></div>
+    <div class="col-3">
+        <form action="{{url_for('student_history')}}" method="POST">
+        <input type="text" style="display:none" name="fac_id_num" value="{{faculty.0.0}}"> 
+        <center><textarea class="form-control" name="id_num" rows="1" style="width:70%; background-color: lightgoldenrodyellow;"
+                placeholder="Enter ID No."></textarea></center>
+    </div>
+    <div class="col-1">
+        <div class="form-group">
+            <center><button class="btn btn-warning" type="submit"><h5>Check</h5></button></center>
+        </div>
+    </form>
+    </div>
+    <div class="col-2"></div>
+</div>
+</div>
+{%if student_data%}
+<br><br><br><center><h1 class="h3 text-primary">{{heading}}'s leave history</h1></center><br>
+<div class="container">
+    <table class="table table-striped  bg-light">
+        <tr>
+            <th>Leave ID</th>
+            <th>From date</th>
+            <th>To date</th>
+            <th>Reason</th>
+            <th>&nbsp;</th>
+            <th>Status</th>
+        </tr>
+        {%for row in student_data%}
+        <tr>
+            <td>{{row.0}}</td>
+            <td>{{row.2}}</td>
+            <td>{{row.3}}</td>
+            <td>{{row.4}}</td>
+            <td>
+                <div class="row">
+                <div class="col-12">
+                {%if row.5=='a'%}
+                    <td class="text-success">Approved</td>
+                {%elif row.5=='b'%}
+                    <td class="text-primary">Waiting for HoD</td>
+                {%elif row.5=='c'%}
+                    <td class="text-info">Waiting for faculty</td>
+                {%elif row.5=='r'%}
+                    <td class="text-danger">Rejected!</td>
+                {%endif%}
+                </div>
+                </div>
+            </td>
+
+        </tr>
+        {%endfor%}
+    </table>
+</div>
+{%endif%}
+<br><br><br><h2 class="h2 text-primary text-center">Leave applications</h2><br/>
 <div class="container">
     <table class="table table-striped  bg-light">
         <tr>
@@ -165,16 +229,31 @@
                 <div class="row">
                 <div class="col">
                     <form action="{{url_for('grant')}}" method="POST">
+                        <input type="text" style="display:none" name="hod" value="{{faculty.0.5}}">
                         <input type="text" style="display:none" name="fac_id_num" value="{{faculty.0.0}}">                   
                         <input type="text" style="display:none" name="id_num" value="{{row.0}}">
-                            <button class="btn btn-success btn-xs" type="submit" style="width:100%">Grant</button>
+                        {%if row.5=='c'%}
+                        <center><textarea class="form-control" name="comment" rows="4" style="width:70%; background-color: lightgoldenrodyellow;"
+                            placeholder="Comments"></textarea></center>
+                            <input type="text" style="display:none" name="flag" value="granted by HoD">
+                            <button class="btn btn-primary btn-xs" type="submit" style="width:100%">Grant</button>
+                        {%elif row.5=='b'%}
+                        <center><textarea class="form-control" name="comment" rows="4" style="width:70%; background-color: lightgoldenrodyellow;"
+                            placeholder="Comments"></textarea></center>
+                            <input type="text" style="display:none" name="flag" value="granted by HoD">
+                            <button class="btn btn-success btn-xs" type="submit" style="width:100%">Forwarded by faculty</button>
+                        {%endif%}
                     </form>
                 </div>
                 <div class="col">
                     <form action="{{url_for('deny')}}" method="POST">
+                        <input type="text" style="display:none" name="hod" value="{{faculty.0.5}}">
                         <input type="text" style="display:none" name="fac_id_num" value="{{faculty.0.0}}">                   
                         <input type="text" style="display:none" name="id_num" value="{{row.0}}">
-                            <button class="btn btn-danger btn-xs" type="submit" style="width:100%">Deny</button>
+                        <center><textarea class="form-control" name="comment" rows="4" style="width:70%; background-color: lightgoldenrodyellow;"
+                            placeholder="Comments"></textarea></center>
+                        <input type="text" style="display:none" name="flag" value="denied by HoD">
+                        <button class="btn btn-danger btn-xs" type="submit" style="width:100%">Deny</button>
                     </form>
                 </div>
                 </div>
@@ -183,6 +262,129 @@
         {%endfor%}
     </table>
 </div>
+
+
+{%else%}
+<div class="container-fluid" style="padding-top: 8%;padding-bottom: 1%;">
+    <div class="row">
+        <div class="col-2"></div>
+        <div class="col-5"><br/><br/>
+            <h2 class="h1" style="color:rgb(0, 34, 49);"> Welcome faculty </h1>
+            <h1 class="h1" style="color:rgb(0, 34, 49);">{{faculty.0.0}} </h1>
+        </div>
+        <div class="col-5">
+            <img src="{{url_for('static', filename='university.png')}}" height="100%" width="30%">
+        </div>
+    </div><br><br>
+</div><br><br><br><br><br>
+<div class="container-fluid">
+<div class="row">
+    <div class="col-2"></div>
+    <div class="col-4"><h3 class="h3">Check student's leave history</h3></div>
+    <div class="col-3">
+        <form action="{{url_for('student_history')}}" method="POST">
+        <input type="text" style="display:none" name="fac_id_num" value="{{faculty.0.0}}"> 
+        <center><textarea class="form-control" name="id_num" rows="1" style="width:70%; background-color: lightgoldenrodyellow;"
+                placeholder="Enter ID No."></textarea></center>
+    </div>
+    <div class="col-1">
+        <div class="form-group">
+            <center><button class="btn btn-warning" type="submit"><h5>Check</h5></button></center>
+        </div>
+    </form>
+    </div>
+    <div class="col-2"></div>
+</div>
+</div>
+{%if student_data%}
+<br><br><br><center><h1 class="h3 text-primary">{{heading}}'s leave history</h1></center><br>
+<div class="container">
+    <table class="table table-striped  bg-light">
+        <tr>
+            <th>Leave ID</th>
+            <th>From date</th>
+            <th>To date</th>
+            <th>Reason</th>
+            <th>&nbsp;</th>
+            <th>Status</th>
+        </tr>
+        {%for row in student_data%}
+        <tr>
+            <td>{{row.0}}</td>
+            <td>{{row.2}}</td>
+            <td>{{row.3}}</td>
+            <td>{{row.4}}</td>
+            <td>
+                <div class="row">
+                <div class="col-12">
+                {%if row.5=='a'%}
+                    <td class="text-success">Approved</td>
+                {%elif row.5=='b'%}
+                    <td class="text-primary">Waiting for HoD</td>
+                {%elif row.5=='c'%}
+                    <td class="text-info">Waiting for faculty</td>
+                {%elif row.5=='r'%}
+                    <td class="text-danger">Rejected!</td>
+                {%endif%}
+                </div>
+                </div>
+            </td>
+
+        </tr>
+        {%endfor%}
+    </table>
+</div>
+{%endif%}
+
+<br><br><br><br><br><br><br><br><h2 class="h2 text-primary text-center">Leave applications</h2><br/>
+<div class="container">
+    <table class="table table-striped  bg-light">
+        <tr>
+            <th>Leave ID</th>
+            <th>Student ID</th>
+            <th>From date</th>
+            <th>To date</th>
+            <th>Reason</th>
+            <th>Pass/ Reject leave</th>
+        </tr>
+        {%for row in applications%}
+        <tr>
+            <td>{{row.0}}</td>
+            <td>{{row.1}}</td>
+            <td>{{row.2}}</td>
+            <td>{{row.3}}</td>
+            <td>{{row.4}}</td>
+            <td>
+                <div class="row">
+                <div class="col">
+                    <form action="{{url_for('grant')}}" method="POST">
+                        <input type="text" style="display:none" name="hod" value="{{faculty.0.5}}">                   
+                        <input type="text" style="display:none" name="fac_id_num" value="{{faculty.0.0}}">                   
+                        <input type="text" style="display:none" name="id_num" value="{{row.0}}">
+                        <center><textarea class="form-control" name="comment" rows="4" style="width:70%; background-color: lightgoldenrodyellow;"
+                            placeholder="Comments"></textarea></center>
+                        <input type="text" style="display:none" name="flag" value="passed to HoD">
+                        <button class="btn btn-success btn-xs" type="submit" style="width:100%">Pass to HoD</button>
+                    </form>
+                </div>
+                <div class="col">
+                    <form action="{{url_for('deny')}}" method="POST">
+                        <input type="text" style="display:none" name="fac_id_num" value="{{faculty.0.0}}">                   
+                        <input type="text" style="display:none" name="id_num" value="{{row.0}}">
+                        <center><textarea class="form-control" name="comment" rows="4" style="width:70%; background-color: lightgoldenrodyellow;"
+                                 placeholder="Comments"></textarea></center>
+                        <input type="text" style="display:none" name="flag" value="denied by faculty">
+                        <button class="btn btn-danger btn-xs" type="submit" style="width:100%">Deny</button>
+                    </form>
+                </div>
+                </div>
+            </td>
+
+        </tr>
+        {%endfor%}
+    </table>
+</div>
+{%endif%}
 {%else%}
 <div class="container-fluid" style="background-color: rgb(255, 255, 255);padding-top: 10%;padding-bottom: 1%;">
     <div class="row">
@@ -258,7 +460,6 @@
     </div><br><br><br>
 </div>
 {%endif%}
-{% include 'footer.html' %}
 {% endblock %}
 </body>
 
