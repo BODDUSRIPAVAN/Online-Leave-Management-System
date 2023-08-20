@@ -19,11 +19,12 @@ OLMS is an online leave application platform for students with user authenticati
 </ol>
 <h5>Features:</h5>
 <ul>
-  <li>User authentication</li>
-  <li>Student portal</li>
-  <li>Authority portal</li>
-  <li>Status update</li>
-  <li>Status dashboard</li>
+  <li>User authentication system</li>
+  <li>Auto-emailing system</li>
+  <li>Dual -level leave approval</li>
+  <li>Responsive & user-friendly design</li>
+  <li>Student - Faculty - HoD portals</li>
+  <li>Status dashboards</li>
 </ul>
 <h5>Advantages:</h5>
 <ul>
