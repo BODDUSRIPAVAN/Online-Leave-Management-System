@@ -1,6 +1,9 @@
 # importing libraries
 from flask import Flask, render_template, url_for, request, redirect, flash
 from flask_mysqldb import MySQL
+import smtplib
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
 
 # creating flask application
 app=Flask(__name__) 
@@ -13,6 +16,9 @@ app.config['MYSQL_PASSWORD']='tail'
 app.config['MYSQL_DB']='college'
 
 mysql=MySQL(app)
+
+psswd="axougvvofniazedy"
+sender="miniprojectteam.12@gmail.com"
 
 
 # home page
@@ -29,15 +35,15 @@ def login():
         password=request.form['password']
         cursor.execute("SELECT * FROM faculty WHERE id_num=%s",(id_num,))
         data=cursor.fetchone()
-        if(data):
-            cursor.execute("SELECT num,id_num,from_date,to_date,reason FROM leave_application WHERE status='n'  ORDER BY num DESC")
+        if(data and data[4]==password):
+            cursor.execute("SELECT num,id_num,from_date,to_date,reason,status FROM leave_application WHERE status='c' or status='b'  ORDER BY num DESC")
             applications=cursor.fetchall()
             cursor.close()
             return render_template("index.html", faculty=[data], applications=applications)
         cursor.execute("SELECT * FROM student_details WHERE id_num=%s",(id_num,))
         data=cursor.fetchone()
         cursor.close()
-        if(data[-1]==password):
+        if(data and data[-2]==password):
             return render_template("index.html", student=[data])
         else:
             flash("Incorrect password!")
@@ -117,8 +123,28 @@ def history():
         cursor.execute("SELECT * FROM leave_application WHERE id_num=%s ORDER BY num DESC",(id_num,))
         data=cursor.fetchall()
         cursor.close()
+
         return render_template('index.html', student=[[id_num,'checked']], previous=data)
     
+@app.route("/student_history", methods=['POST'])
+def student_history():
+    if request.method=='POST':
+        id_num=request.form['id_num']
+        fac_id_num= request.form['fac_id_num']
+
+        cursor=mysql.connection.cursor()
+        cursor.execute("SELECT * FROM leave_application WHERE id_num=%s ORDER BY num DESC",(id_num,))
+        student=cursor.fetchall()
+        cursor.close()
+
+        cursor=mysql.connection.cursor()
+        cursor.execute("SELECT * FROM faculty WHERE id_num=%s",(fac_id_num,))
+        data=cursor.fetchone()
+        cursor.execute("SELECT num,id_num,from_date,to_date,reason,status FROM leave_application WHERE status='c'")
+        applications=cursor.fetchall()
+
+        return render_template("index.html", heading=str(id_num), faculty=[data], applications=applications, student_data= student) 
+
 # application delete function
 @app.route("/delete", methods=['POST'])
 def delete():
@@ -142,16 +168,48 @@ def grant():
     if request.method=='POST':
         fac_id_num=request.form['fac_id_num']
         id_num=request.form['id_num']
+        hod= request.form['hod']
+        comment= request.form['comment']
+        flag= request.form['flag']
 
         cursor=mysql.connection.cursor()
-        cursor.execute("UPDATE leave_application SET status='y' WHERE num=%s",(id_num,))
+        cursor.execute("INSERT INTO comments VALUES (%s,%s)",(id_num,comment))
         mysql.connection.commit()
-        flash("Leave granted!")
+
+        if hod=='n':
+            cursor=mysql.connection.cursor()
+            cursor.execute("UPDATE leave_application SET status='b' WHERE num=%s",(id_num,))
+            mysql.connection.commit()
+            flash("Leave passed to HoD!")
+
+        if hod=='y':
+            cursor=mysql.connection.cursor()
+            cursor.execute("UPDATE leave_application SET status='a' WHERE num=%s",(id_num,))
+            mysql.connection.commit()
+            flash("Leave approved!")
         
         cursor.execute("SELECT * FROM faculty WHERE id_num=%s",(fac_id_num,))
         data=cursor.fetchone()
-        cursor.execute("SELECT num,id_num,from_date,to_date,reason FROM leave_application WHERE status='n'")
+        cursor.execute("SELECT num,id_num,from_date,to_date,reason,status FROM leave_application WHERE status='c'")
         applications=cursor.fetchall()
+
+        cursor=mysql.connection.cursor()
+        cursor.execute("SELECT email from student_details where id_num=(SELECT id_num from leave_application where num=%s)",(id_num,))
+        receiver= cursor.fetchone()[0]
+        email_body="<html><body><b><h1 style='color:green;'>Leave "+flag+" !</h1></b><br><h2 style='color:blue;'>"+comment+"</h2></body></html>"
+        message= MIMEMultipart('alternative', None, [MIMEText(email_body,'html')])
+        message['Subject']="Leave Status"
+        message['From']= sender
+        message['To']= receiver
+        try:
+            server= smtplib.SMTP('smtp.gmail.com:587')
+            server.ehlo()
+            server.starttls()
+            server.login(sender, psswd)
+            server.sendmail(sender, receiver, message.as_string())
+            server.quit()
+        except:
+            print("Exception occurred!")
         cursor.close()
         return render_template("index.html", faculty=[data], applications=applications)
 
@@ -161,6 +219,12 @@ def deny():
     if request.method=='POST':
         fac_id_num=request.form['fac_id_num']
         id_num=request.form['id_num']
+        comment= request.form['comment']
+        flag= request.form['flag']
+
+        cursor=mysql.connection.cursor()
+        cursor.execute("INSERT INTO comments VALUES (%s,%s)",(id_num,comment))
+        mysql.connection.commit()
 
         cursor=mysql.connection.cursor()
         cursor.execute("UPDATE leave_application SET status='r' WHERE num=%s",(id_num,))
@@ -169,8 +233,26 @@ def deny():
         
         cursor.execute("SELECT * FROM faculty WHERE id_num=%s",(fac_id_num,))
         data=cursor.fetchone()
-        cursor.execute("SELECT num,id_num,from_date,to_date,reason FROM leave_application WHERE status='n'")
+        cursor.execute("SELECT num,id_num,from_date,to_date,reason,status FROM leave_application WHERE status='c' or status='b'")
         applications=cursor.fetchall()
+
+        cursor=mysql.connection.cursor()
+        cursor.execute("SELECT email from student_details where id_num=(SELECT id_num from leave_application where num=%s)",(id_num,))
+        receiver= cursor.fetchone()[0]
+        email_body="<html><body><b><h1 style='color:red;'>Leave "+flag+"!</b><br><h2 style='color:blue;'>"+comment+"</h2></body></html>"
+        message= MIMEMultipart('alternative', None, [MIMEText(email_body,'html')])
+        message['Subject']="Leave Status"
+        message['From']= sender
+        message['To']= receiver
+        try:
+            server= smtplib.SMTP('smtp.gmail.com:587')
+            server.ehlo()
+            server.starttls()
+            server.login(sender, psswd)
+            server.sendmail(sender, receiver, message.as_string())
+            server.quit()
+        except:
+            print("Exception occurred!")
         cursor.close()
         return render_template("index.html", faculty=[data], applications=applications)
 
